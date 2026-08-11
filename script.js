@@ -42,3 +42,22 @@ function operate(operator, a, b) {
             return null;
     }
 }
+const display = document.querySelector('#display');
+const numberButtons = document.querySelectorAll('.btn-number');
+
+function appendNumber(number) {
+    // Reset display if starting a new entry after pressing an operator or equals
+    if (display.textContent === '0' || shouldResetDisplay) {
+        display.textContent = '';
+        shouldResetDisplay = false;
+    }
+    
+    // Extra Credit: Prevent multiple decimals
+    if (number === '.' && display.textContent.includes('.')) return;
+
+    display.textContent += number;
+}
+
+numberButtons.forEach((button) => {
+    button.addEventListener('click', () => appendNumber(button.textContent));
+});
