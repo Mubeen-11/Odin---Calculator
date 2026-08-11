@@ -1,82 +1,55 @@
-// Basic arithmetic functions
-function add(a, b) {
-    return a + b;
-}
+// DOM elements
+const display = document.querySelector('#display');
+const numberButtons = document.querySelectorAll('.btn-number');
+const operatorButtons = document.querySelectorAll('.btn-operator');
+const equalsButton = document.querySelector('#equals');
+const clearButton = document.querySelector('#clear');
+const backspaceButton = document.querySelector('#backspace');
 
-function subtract(a, b) {
-    return a - b;
-}
-
-function multiply(a, b) {
-    return a * b;
-}
-
-function divide(a, b) {
-    if (b === 0) {
-        return "Nice try, genius!"; // Snarky error message for divide by 0
-    }
-    return a / b;
-}
-
-// Global state variables
+// State variables
 let firstOperand = null;
 let currentOperator = null;
 let secondOperand = null;
 let shouldResetDisplay = false;
 
-// Central operate dispatcher
+// Basic math functions
+function add(a, b) { return a + b; }
+function subtract(a, b) { return a - b; }
+function multiply(a, b) { return a * b; }
+function divide(a, b) {
+    if (b === 0) return "Nice try, genius!";
+    return a / b;
+}
+
 function operate(operator, a, b) {
     a = Number(a);
     b = Number(b);
-
     switch (operator) {
-        case '+':
-            return add(a, b);
-        case '-':
-            return subtract(a, b);
-        case '*':
-            return multiply(a, b);
-        case '/':
-            return divide(a, b);
-        default:
-            return null;
+        case '+': return add(a, b);
+        case '-': return subtract(a, b);
+        case '*': return multiply(a, b);
+        case '/': return divide(a, b);
+        default: return null;
     }
 }
-const display = document.querySelector('#display');
-const numberButtons = document.querySelectorAll('.btn-number');
 
 function appendNumber(number) {
-    // Reset display if starting a new entry after pressing an operator or equals
     if (display.textContent === '0' || shouldResetDisplay) {
         display.textContent = '';
         shouldResetDisplay = false;
     }
-    
-    // Extra Credit: Prevent multiple decimals
     if (number === '.' && display.textContent.includes('.')) return;
-
     display.textContent += number;
 }
 
-numberButtons.forEach((button) => {
-    button.addEventListener('click', () => appendNumber(button.textContent));
-});
-const operatorButtons = document.querySelectorAll('.btn-operator');
-const equalsButton = document.querySelector('#equals');
-const clearButton = document.querySelector('#clear');
-
 function setOperator(operator) {
-    // If user presses another operator consecutively without entering a new number, update operator
     if (currentOperator !== null && shouldResetDisplay) {
         currentOperator = operator;
         return;
     }
-
-    // Evaluate pair if first operand and operator are already stored
     if (firstOperand !== null && currentOperator !== null) {
         evaluate();
     }
-
     firstOperand = display.textContent;
     currentOperator = operator;
     shouldResetDisplay = true;
@@ -89,7 +62,7 @@ function evaluate() {
     const result = operate(currentOperator, firstOperand, secondOperand);
 
     if (typeof result === 'string') {
-        display.textContent = result; // Display divide-by-zero error
+        display.textContent = result;
     } else {
         display.textContent = roundResult(result);
     }
@@ -111,9 +84,36 @@ function clear() {
     shouldResetDisplay = false;
 }
 
+// Extra Credit: Backspace
+function handleBackspace() {
+    if (shouldResetDisplay) return;
+    display.textContent = display.textContent.slice(0, -1);
+    if (display.textContent === '') {
+        display.textContent = '0';
+    }
+}
+
+// Mouse Event Listeners
+numberButtons.forEach((button) => {
+    button.addEventListener('click', () => appendNumber(button.textContent));
+});
+
 operatorButtons.forEach((button) => {
     button.addEventListener('click', () => setOperator(button.dataset.operator));
 });
 
 equalsButton.addEventListener('click', evaluate);
 clearButton.addEventListener('click', clear);
+backspaceButton.addEventListener('click', handleBackspace);
+
+// Extra Credit: Keyboard Support
+window.addEventListener('keydown', (e) => {
+    if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+    if (e.key === '.') appendNumber('.');
+    if (e.key === '=' || e.key === 'Enter') evaluate();
+    if (e.key === 'Backspace') handleBackspace();
+    if (e.key === 'Escape') clear();
+    if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+        setOperator(e.key);
+    }
+});
